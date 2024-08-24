@@ -1,0 +1,18 @@
+{
+
+  "description": "A Firefox extension that enhances your Gmail security by assigning a safety score to each email. It helps detect phishing attempts by analyzing the sender, subject, attachments, and email body, providing real-time alerts and detailed explanations.",
+  "manifest_version": 2,
+  "name": "PhishNet",
+  "version": "0.1",
+  "icons": {
+    "48": "icons/phishnet.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://mail.google.com/mail/*"],
+      "js": ["js/gmail.js", "js/all_mail_rules.js", "js/single_mail_rules.js", "js/view_mail/view_mail_rules.js", "js/main.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
