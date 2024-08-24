@@ -22,7 +22,7 @@ PhishNet applies a series of rules to each of these elements, with each rule con
 ## Installation
 1. Clone or download this repository to your local machine.
     ```bash
-    git clone https://github.com/yourusername/phishnet.git
+    git clone https://github.com/jensvh/phishnet.git
     ```
 2. Open Firefox and navigate to `about:debugging`.
 3. Click on **This Firefox** and then on **Load Temporary Add-on**.
