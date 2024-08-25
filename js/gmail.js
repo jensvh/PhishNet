@@ -6,6 +6,41 @@ phishnet.emails_loaded_query = "div.UI tbody";
 phishnet.mutation_observer_query = "div.AO";
 phishnet.mail_open_query = "div[jsaction][role=main]";
 
+phishnet.waitForElement = (query, callBack) => {
+    window.setTimeout(function(){
+        var element = document.querySelector(query);
+        if(element){
+            callBack(element);
+        }else{
+            phishnet.waitForElement(query, callBack);
+        }
+    },500)
+};
+
+// When all mails are loaded, trigger the onAllMailsLoaded event
+phishnet.waitForElement(phishnet.mutation_observer_query, function(element){
+    console.log('waiting for all mails to load');
+    // Trigger the onAllMailsLoaded event
+    document.dispatchEvent(phishnet.onAllMailsLoaded);
+
+    // Create a new observer to watch for changes in the mail list
+    var observer = new MutationObserver(function(mutations) {
+        if (phishnet.debug) { console.log('mutations: ', mutations); }
+
+        // If a mail is opened, trigger the onMailOpened event
+        if (document.querySelector(phishnet.mail_open_query)) {
+            document.dispatchEvent(phishnet.onMailOpened);
+            return;
+        }
+
+        // If the mail list is changed, trigger the onAllMailsChanged event
+        document.dispatchEvent(phishnet.onAllMailsChanged);
+    });
+    observer.observe(element, { childList: true, subtree: true });
+});
+
+
+
 phishnet.fetch_mails = function() {
     var mailArray = [];
     var rootElements = document.querySelectorAll('div.UI tbody');
@@ -17,6 +52,10 @@ phishnet.fetch_mails = function() {
         
         mailElements.forEach(function(mailElement) {
             var element_to_display = mailElement.querySelector('div.yW');
+            if (!element_to_display) {
+                if (phishnet.debug) console.warn('element_to_display not found for mailElement: ', mailElement);
+                return
+            }
             if (element_to_display.querySelector('span.scorerrrrrrrrr')) {
                 if (phishnet.debug) console.log('score already displayed.');
                 return;

@@ -3,55 +3,67 @@ phishnet.debug = true;
 phishnet.mail_to_debug = -1;
 if (phishnet.debug) console.log('injection.js loaded');
 
-// on mails loaded
-// waitForElement(phishnet.emails_loaded_query, updateScores);
+// Events
+// OnAllMailsLoaded event - triggered only once when the page is loaded and all the mails are loaded
+phishnet.onAllMailsLoaded = new Event('onAllMailsLoaded');
+// OnAllMailsChanged event - triggered when one or more mails are added, updated or removed
+phishnet.onAllMailsChanged = new Event('onAllMailsChanged');
+// OnMailOpened event - triggered when a mail is opened
+phishnet.onMailOpened = new Event('onMailOpened');
 
-// on dom change
-// var next_mutation_time = 0;
-waitForElement(phishnet.mutation_observer_query,function(query, element){
-    var observer = new MutationObserver(function(mutations) {
-        // if (Date.now() < next_mutation_time) return;
-        // next_mutation_time = Date.now() + 1000;
-
-        if (phishnet.debug) { console.log('mutations: ', mutations); }
-
-        if (document.querySelector(phishnet.mail_open_query)) {
-            if (phishnet.debug) console.log('mail open');
-
-            // Get all the mail data
-            const mail = phishnet.fetch_mail_data();
-            
-            // Get the mail score
-            phishnet.view_mail_rules.forEach(function(rule) {
-                mail.score *= rule(mail.email, mail.name, mail.title, mail.bodyElement, mail.bodyText, mail.verified);
-            });
-
-            // Show notification with the score
-            phishnet.display_mail_notification(mail);
-
-            if (phishnet.debug) console.log('mail score displayed: ', mail.score);
-
-            return;
-        }
-
-        updateScores();
-    });
-    observer.observe(element, { childList: true, subtree: true });
+document.addEventListener('onAllMailsLoaded', () => {
+    if (phishnet.debug) console.log('on all mails loaded');
+    updateScores();
 });
 
-// on mail open
+document.addEventListener('onAllMailsChanged', () => {
+    if (phishnet.debug) console.log('on all mails changed');
+    updateScores();
+});
+
+document.addEventListener('onMailOpened', () => {
+    if (phishnet.debug) console.log('on mail opened');
+
+    const mail = phishnet.fetch_mail_data();
+    phishnet.view_mail_rules.forEach(function(rule) {
+        mail.score *= rule(mail.email, mail.name, mail.title, mail.bodyElement, mail.bodyText, mail.verified);
+    });
+
+    phishnet.display_mail_notification(mail);
+
+    if (phishnet.debug) console.log('mail score displayed: ', mail.score);
+});
 
 
-function waitForElement(query, callBack){
-    window.setTimeout(function(){
-        var element = document.querySelector(query);
-        if(element){
-            callBack(query, element);
-        }else{
-            waitForElement(query, callBack);
-        }
-    },500)
-}
+
+// on dom change
+// waitForElement(phishnet.mutation_observer_query,function(query, element){
+//     var observer = new MutationObserver(function(mutations) {
+//         if (phishnet.debug) { console.log('mutations: ', mutations); }
+
+//         if (document.querySelector(phishnet.mail_open_query)) {
+//             if (phishnet.debug) console.log('mail open');
+
+//             // Get all the mail data
+//             const mail = phishnet.fetch_mail_data();
+            
+//             // Get the mail score
+//             phishnet.view_mail_rules.forEach(function(rule) {
+//                 mail.score *= rule(mail.email, mail.name, mail.title, mail.bodyElement, mail.bodyText, mail.verified);
+//             });
+
+//             // Show notification with the score
+//             phishnet.display_mail_notification(mail);
+
+//             if (phishnet.debug) console.log('mail score displayed: ', mail.score);
+
+//             return;
+//         }
+
+//         updateScores();
+//     });
+//     observer.observe(element, { childList: true, subtree: true });
+// });
 
 function updateScores() {
     var mails = phishnet.fetch_mails();
